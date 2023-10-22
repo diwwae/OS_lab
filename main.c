@@ -4,16 +4,40 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 
-void delete_vowels(char* str){
-    int i=0, j=0;
-    while (str[i]){
-        char lower = tolower(str[i]);
-        if (lower != 'a' && lower != 'u' && lower != 'e' && lower != 'o' && lower != 'i'){
-            str[j++] = str[i];
-        }
-        i++;
+
+// Родительский процесс создает два дочерних процесса. Первой строкой пользователь в консоль
+// родительского процесса вводит имя файла, которое будет использовано для открытия File с таким
+// именем на запись для child1. Аналогично для второй строки и процесса child2. Родительский и
+// дочерний процесс должны быть представлены разными программами.
+
+// Родительский процесс принимает от пользователя строки произвольной длины и пересылает их в
+// pipe1 или в pipe2 в зависимости от правила фильтрации. Процесс child1 и child2 производят работу
+// над строками. Процессы пишут результаты своей работы в стандартный вывод.
+// Вариант 17) Правило фильтрации: строки длины больше 10 символов отправляются в pipe2, иначе
+// в pipe1. Дочерние процессы удаляют все гласные из строк
+
+#define READ 0
+#define WRITE 1
+
+size_t strlen(const char *str) {
+    size_t length = 0;
+    while (*str != '\0') {
+        length++;
+        str++;
     }
-    str[j]='\0';
+    return length;
+}
+
+void delete_vowels(char* str){
+    int letter=0, new_letter=0;
+    while (str[letter]){
+        if (str[letter] != 'a' && str[letter] != 'u' && str[letter] != 'e' && str[letter] != 'o' && str[letter] != 'i'
+            && str[letter] != 'A' && str[letter] != 'U' && str[letter] != 'E' && str[letter] != 'O' && str[letter] != 'I'){
+            str[new_letter++] = str[letter];
+        }
+        letter++;
+    }
+    str[new_letter]='\0';
 }
 
 int main(){
@@ -42,9 +66,10 @@ int main(){
         close(fd_1[1]);
         char buffer_1[255];
         int size;
-        while (read(fd_1[0], &size, sizeof(int))>0){
-            read(fd_1[0], &buffer_1, sizeof(char) * size);
-            dup2(File1, STDOUT_FILENO);
+        dup2(File1, STDOUT_FILENO);
+        while (read(fd_1[READ], &size, sizeof(int))>0){
+            read(fd_1[READ], &buffer_1, sizeof(char) * size);
+
             delete_vowels(buffer_1);
             printf(buffer_1);
         }
@@ -60,9 +85,9 @@ int main(){
             //CHILD_2 PROCESS
             close(fd_2[1]);
             int size;
-            while (read(fd_2[0], &size, sizeof(int))>0){
+            while (read(fd_2[READ], &size, sizeof(int))>0){
                 char buffer_2[255];
-                read(fd_2[0], &buffer_2, sizeof(char) * size);
+                read(fd_2[READ], &buffer_2, sizeof(char) * size);
                 dup2(File2, STDOUT_FILENO);
                 delete_vowels(buffer_2);
                 printf(buffer_2);
@@ -70,8 +95,8 @@ int main(){
 
         } else {
             //PARENT PROCESS
-            close(fd_1[0]);
-            close(fd_2[0]);
+            close(fd_1[READ]);
+            close(fd_2[READ]);
             char buffer[255];
 
             printf("Enter lines:");
@@ -83,18 +108,19 @@ int main(){
 
                 if (strlen(buffer) > 10){
                     int size = strlen(buffer) + 1;
-                    write(fd_2[1], &size, sizeof(int));
-                    write(fd_2[1], &buffer, sizeof(char) * size);
+                    write(fd_2[WRITE], &size, sizeof(int));
+                    write(fd_2[WRITE], &buffer, sizeof(char) * size);
                 } else {
                     int size = strlen(buffer) + 1;
-                    write(fd_1[1], &size, sizeof(int));
-                    write(fd_1[1], &buffer, sizeof(char) * size);
+                    write(fd_1[WRITE], &size, sizeof(int));
+                    write(fd_1[WRITE], &buffer, sizeof(char) * size);
                 }
             }
-            close(fd_1[1]);
-            close(fd_2[1]);
+            close(fd_1[WRITE]);
+            close(fd_2[WRITE]);
             close(File1);
             close(File2);
+            wait(NULL);
         }
     }
 }
