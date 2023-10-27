@@ -113,6 +113,7 @@ int main() {
     int numThreads;
     printf("Print count of threads:");
     scanf("%d", &numThreads);
+
     printf("Print count of elements:");
     
     int count_of_elements;
@@ -123,6 +124,17 @@ int main() {
         // scanf("%d", &arr[i]);
         arr[i] = rand();
     }
+
+    // int arr[50];
+    // FILE* inputFile = fopen("test.txt","r");
+
+    // for (int i = 0; i < 50; i++) {
+    //     fscanf(inputFile,"%d",&arr[i]);
+    // }
+    // close(inputFile);
+
+
+
 
     int size = sizeof(arr) / sizeof(arr[0]);
 
