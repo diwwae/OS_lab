@@ -102,7 +102,7 @@ int main(){
             printf("Enter lines:");
             while (1){
                 fgets(buffer, sizeof(char) * 255, stdin);
-                if (buffer[0] == '\n') {
+                if (*buffer == '\n') {
                     break;
                 }
 

@@ -1,13 +1,13 @@
-all: directories parent child1 
+all: directories parent child
 
 directories: 
 	mkdir -p build
 
 parent: src/parent.c
-	g++ src/parent.c -g -o build/parent
+	gcc src/parent.c -g -o build/parent
 
-child1: src/child1.c
-	g++ src/child1.c -g -o build/child1
+child: src/child.c
+	gcc src/child.c -g -o build/child
 
 
 run: task 

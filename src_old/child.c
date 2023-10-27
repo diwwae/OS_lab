@@ -20,12 +20,12 @@ int main(int argc, char* argv[]){
 
     char buffer_1[255];
 
-    read(STDIN_FILENO, buffer_1, 255);
+    read(STDIN_FILENO, &buffer_1, 255);
 
     delete_vowels(buffer_1);
 
     printf(buffer_1);
-
-    return 0;
+    printf("check");
+    // return 0;
 
 }
