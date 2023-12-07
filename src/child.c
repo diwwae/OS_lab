@@ -7,6 +7,10 @@ const int FILE_NAME_SIZE = 20;
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
+// #include <sys/types.h>
+#include <fcntl.h>
 
 int isVowel(char letter) {
     switch (letter) {
@@ -39,11 +43,20 @@ int contain(char letter, char word[MAX_WORDS]) {
 }
 
 void write_to_file(char filename[FILE_NAME_SIZE], char words[MAX_WORDS][MAX_LENGTH]) {
-    FILE *file = fopen(filename, "w");
+    int fd = open(filename, O_RDONLY, S_IRUSR | S_IWUSR);
+    struct stat sb;
+
+    if (fstat(fd, &sb) == -1){
+        perror("couldn't get file size.\n");
+    }
+
+    char *file = mmap(NULL, sb.st_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+
     if (file == NULL) {
         printf("file wasn't open",_P_);
         exit(-1);
     }
+
     for (int index_of_word = 0; index_of_word < MAX_WORDS && words[index_of_word][0] != EOF; ++index_of_word) {
         if (contain('_', words[index_of_word])) {
             for (int index_of_letters = 0;
@@ -60,7 +73,8 @@ void write_to_file(char filename[FILE_NAME_SIZE], char words[MAX_WORDS][MAX_LENG
         fprintf(file, "%s\n", words[index_of_word]);
         printf("%s\n", words[index_of_word]);
     }
-    fclose(file);
+    munmap(file, sb.st_size);
+    close(fd);
 }
 
 void remove_vowels(char filename[FILE_NAME_SIZE], char words[MAX_WORDS][MAX_LENGTH]) {
@@ -75,17 +89,20 @@ void remove_vowels(char filename[FILE_NAME_SIZE], char words[MAX_WORDS][MAX_LENG
     }
 }
 
-int main() {
+int main(int argc, char* argv[]) {
     printf(_G_);
     char filename[FILE_NAME_SIZE];
-    read(STDIN_FILENO, &filename, sizeof(filename));
+    filename[FILE_NAME_SIZE] = argv[0];
 
+    FILE* file = fopen(filename, "r");
 
     char words[MAX_WORDS][MAX_LENGTH];
     for (int counter_of_input_words = 0; counter_of_input_words < MAX_WORDS; ++counter_of_input_words) {
         read(STDIN_FILENO, words[counter_of_input_words], sizeof(words[counter_of_input_words]));
     }
 
+
     remove_vowels(filename, words);
     write_to_file(filename, words);
+
 }

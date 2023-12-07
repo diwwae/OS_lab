@@ -90,8 +90,8 @@ int main() {
         int dup = dup2(pipe_fd_for_first_child[0], STDIN_FILENO);
         error_handler(dup);
 
-        execl(CHILD, CHILD, NULL);
-        perror("Дочерняя программа не была вызвана");
+        execl(CHILD, CHILD, first_file_name, NULL);
+        perror("Сhild process wasn't called");
     } else {
         // printf(_R_);
         printf("parent process ");
@@ -122,8 +122,8 @@ int main() {
         int dup = dup2(pipe_fd_for_first_child[0], STDIN_FILENO);
         error_handler(dup);
 
-        execl(CHILD, CHILD, NULL);
-        perror("Дочерняя программа не была вызвана");
+        execl(CHILD, CHILD, second_file_name, NULL);
+        perror("Сhild process wasn't called");
     } else {
         // printf(_R_);
         printf("parent process ");
