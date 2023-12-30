@@ -331,6 +331,7 @@ int main(int argc, char* argv[]) {
                         right_socket.send(message_main);
                         zmq::message_t message;
                         right_socket.recv(&message);
+                        right_socket.send(message_main);
                         main_socket.send(message);
                     }
                 }
