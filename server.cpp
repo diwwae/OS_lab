@@ -12,11 +12,15 @@
 #define PORT 1602
 #define BUFFER_SIZE 1024
 
-bool is_client_connection_close(char* msg);
+bool isClientConnectionClose(char* msg);
+
+bool isSymbolFind(char* msg);
+
+void searchSubstringInFile(char* filePath, char* buffer);
 
 int main(int argc, char *argv[]){
     // int file = open("ChatHistory.txt", O_WRONLY | O_CREAT, 0777);
-    std::fstream file("ChatHistory.txt");
+    // std::fstream file("ChatHistory.txt");
     // file.open("ChatHistory.txt");
     // file << "gqw";
     // if (!file.is_open()){
@@ -25,6 +29,8 @@ int main(int argc, char *argv[]){
     // }
 
     // dup2(file,1);
+    char* filename = "ChatHistory.txt"; 
+    FILE *file = fopen(filename, "ab+");
 
     int client;
     int server;
@@ -71,29 +77,40 @@ int main(int argc, char *argv[]){
         std::cout << "Client: ";
         recv(server, buffer, BUFFER_SIZE, 0); 
         std::cout << buffer << std::endl;
-        if (is_client_connection_close(buffer))      
+        if (isClientConnectionClose(buffer))      
             isExit = true;
     
 
         while (!isExit){
             std::cout << "Server: ";
             std::cin.getline(buffer, BUFFER_SIZE);
+
             // file.write(buffer, BUFFER_SIZE);
             // file << "hi";
-            file.getline(buffer, BUFFER_SIZE);
+            // file.getline(buffer, BUFFER_SIZE);
             // write(file, buffer, BUFFER_SIZE);
+            fprintf(file, "Server: ");
+            fprintf(file, buffer);
+            fprintf(file, "\n");
             send(server, buffer, BUFFER_SIZE, 0);
-            // send(file, buffer, BUFFER_SIZE, 0);
-            if (is_client_connection_close(buffer)){
+            if (isClientConnectionClose(buffer)){
                 break;
+            }
+            if (isSymbolFind(buffer)){
+                searchSubstringInFile(filename, buffer);
             }
             
             std::cout << "Client: ";
             recv(server, buffer, BUFFER_SIZE, 0);
             std::cout << buffer << std::endl;
-            file << buffer;
-            if (is_client_connection_close(buffer)){
+            fprintf(file, "Client: ");
+            fprintf(file, buffer);
+            fprintf(file, "\n");
+            if (isClientConnectionClose(buffer)){
                 break;
+            }
+            if (isSymbolFind(buffer)){
+                searchSubstringInFile(filename, buffer);
             }
         }
         std::cout << "Finished...\n";
@@ -101,16 +118,45 @@ int main(int argc, char *argv[]){
         exit(0);
     }
     close(server);
-    file.close();
     // close(file);
+    fclose(file);
     return 0;
 }
 
-bool is_client_connection_close(char* msg){
+bool isClientConnectionClose(char* msg){
     for(int i=0; i < strlen(msg); ++i){
         if (msg[i] == '#'){
             return true;
         }
     }
     return false;
+}
+
+bool isSymbolFind(char* msg){
+    for(int i=0; i < strlen(msg); ++i){
+        if (msg[i] == '@'){
+            return true;
+        }
+    }
+    return false;
+}
+
+void searchSubstringInFile(char* filePath, char* full_buffer) {
+    std::ifstream file(filePath);
+    std::string line;
+    bool flag = false;
+    char *buffer = full_buffer + 1;
+
+    while (std::getline(file, line)) {
+        if (std::strstr(line.c_str(), buffer) != nullptr) {
+            std::cout << "Substring found: " << line << std::endl;
+            flag = true;
+        }
+    }
+    if (flag == true) {
+        return;
+    }
+
+    std::cout << "Substring not found in the file." << std::endl;
+    return;
 }
