@@ -9,7 +9,7 @@
 #include <fcntl.h>
 #include <fstream>
 
-#define PORT 1602
+#define PORT 1604
 #define BUFFER_SIZE 1024
 
 bool isClientConnectionClose(char* msg);
@@ -18,19 +18,12 @@ bool isSymbolFind(char* msg);
 
 void searchSubstringInFile(char* filePath, char* buffer);
 
-int main(int argc, char *argv[]){
-    // int file = open("ChatHistory.txt", O_WRONLY | O_CREAT, 0777);
-    // std::fstream file("ChatHistory.txt");
-    // file.open("ChatHistory.txt");
-    // file << "gqw";
-    // if (!file.is_open()){
-    //     std::cout << "ERROR: can't open file";
-    //     exit(0);
-    // }
+void printToFile(char* user_name, char *buffer);
 
-    // dup2(file,1);
+int main(int argc, char *argv[]){
+
     char* filename = "ChatHistory.txt"; 
-    FILE *file = fopen(filename, "ab+");
+    // FILE *file = fopen(filename, "ab+");
 
     int client;
     int server;
@@ -77,21 +70,25 @@ int main(int argc, char *argv[]){
         std::cout << "Client: ";
         recv(server, buffer, BUFFER_SIZE, 0); 
         std::cout << buffer << std::endl;
+        // fprintf(file, "Client: ");
+        // fprintf(file, buffer);
+        // fprintf(file, "\n");
+        printToFile("Client", buffer);
         if (isClientConnectionClose(buffer))      
             isExit = true;
+        if (isSymbolFind(buffer)){
+            searchSubstringInFile(filename, buffer);
+        }
+        
     
 
         while (!isExit){
             std::cout << "Server: ";
             std::cin.getline(buffer, BUFFER_SIZE);
-
-            // file.write(buffer, BUFFER_SIZE);
-            // file << "hi";
-            // file.getline(buffer, BUFFER_SIZE);
-            // write(file, buffer, BUFFER_SIZE);
-            fprintf(file, "Server: ");
-            fprintf(file, buffer);
-            fprintf(file, "\n");
+            // fprintf(file, "Server: ");
+            // fprintf(file, buffer);
+            // fprintf(file, "\n");
+            printToFile("Server", buffer);
             send(server, buffer, BUFFER_SIZE, 0);
             if (isClientConnectionClose(buffer)){
                 break;
@@ -103,9 +100,10 @@ int main(int argc, char *argv[]){
             std::cout << "Client: ";
             recv(server, buffer, BUFFER_SIZE, 0);
             std::cout << buffer << std::endl;
-            fprintf(file, "Client: ");
-            fprintf(file, buffer);
-            fprintf(file, "\n");
+            // fprintf(file, "Client: ");
+            // fprintf(file, buffer);
+            // fprintf(file, "\n");
+            printToFile("Client", buffer);
             if (isClientConnectionClose(buffer)){
                 break;
             }
@@ -118,8 +116,7 @@ int main(int argc, char *argv[]){
         exit(0);
     }
     close(server);
-    // close(file);
-    fclose(file);
+    // fclose(file);
     return 0;
 }
 
@@ -150,6 +147,15 @@ void searchSubstringInFile(char* filePath, char* full_buffer) {
     while (std::getline(file, line)) {
         if (std::strstr(line.c_str(), buffer) != nullptr) {
             std::cout << "Substring found: " << line << std::endl;
+
+            // char full_msg[256]{};
+            // std::cout << "....................................." << std::endl;
+            // std::strcpy(full_msg, "Substring found: " ); 
+            // std::cout << "||||||||||||||||||||||||||||||||||||||||" << std::endl;
+            // std::strcat(full_msg, line.c_str());
+            // std::cout << "....................................." << std::endl;
+            // printToFile("system", full_msg);
+            // std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1!" << std::endl;
             flag = true;
         }
     }
@@ -158,5 +164,23 @@ void searchSubstringInFile(char* filePath, char* full_buffer) {
     }
 
     std::cout << "Substring not found in the file." << std::endl;
+    return;
+}
+
+void printToFile(char* user_name, char *buffer){
+    char* filename = "ChatHistory.txt"; 
+    FILE *file = fopen(filename, "ab+");
+
+    // if (user_name != "system"){
+    //     fprintf(file, user_name);
+    //     fprintf(file, ": ");
+    // }
+
+    fprintf(file, user_name);
+    fprintf(file, ": ");
+    fprintf(file, buffer);
+    fprintf(file, "\n");
+
+    fclose(file);
     return;
 }

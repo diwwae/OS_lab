@@ -9,7 +9,7 @@
 #include <fstream>
 
 #define SERVER_IP "127.0.0.1"
-#define PORT 1602
+#define PORT 1604
 #define BUFFER_SIZE 1024
 
 bool isClientConnectionClose(char* msg);
